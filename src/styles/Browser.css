@@ -1,0 +1,155 @@
+/* Browser.css */
+.tab-bar {
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  min-height: 48px;
+  user-select: none;
+}
+
+.tab {
+  border-right: 1px solid #dee2e6;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.tab:hover {
+  background: #e9ecef !important;
+}
+
+.tab.active {
+  background: #ffffff;
+  border-bottom: 2px solid #0d6efd;
+}
+
+.tab-title {
+  font-weight: 500;
+  color: #495057;
+}
+
+.tab.active .tab-title {
+  color: #212529;
+  font-weight: 600;
+}
+
+.navigation-bar {
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  min-height: 56px;
+}
+
+.webview-container {
+  flex: 1;
+  background: #ffffff;
+  position: relative;
+}
+
+.webview {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #ffffff;
+}
+
+.empty-state {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.empty-state i {
+  opacity: 0.6;
+}
+
+.empty-state h4 {
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Navigation controls */
+.navigation-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  background: #ffffff;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.url-input-group {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 1rem;
+}
+
+.url-input {
+  border-radius: 20px;
+  border: 1px solid #dee2e6;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.url-input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.sidebar-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sidebar-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sidebar-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading indicator */
+.loading-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0d6efd, #20c997, #0d6efd);
+  background-size: 200% 100%;
+  animation: loading-animation 1.5s infinite;
+}
+
+@keyframes loading-animation {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

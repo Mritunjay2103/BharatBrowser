@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chromium AI Browser</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            overflow: hidden;
+        }
+        
+        #root {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .browser-chrome {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 8px;
+            user-select: none;
+        }
+        
+        .browser-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .main-browser {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar {
+            width: 350px;
+            background: #ffffff;
+            border-left: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .webview-container {
+            flex: 1;
+            background: #ffffff;
+        }
+        
+        .webview {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .loading-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="loading-screen">
+            <div class="text-center">
+                <i class="fas fa-globe fa-3x text-primary mb-3"></i>
+                <h4>Loading Chromium AI Browser...</h4>
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script type="text/babel" src="../src/services/aiService.js"></script>
+    <script type="text/babel" src="../src/services/consentService.js"></script>
+    <script type="text/babel" src="../src/components/NavigationBar.js"></script>
+    <script type="text/babel" src="../src/components/TabManager.js"></script>
+    <script type="text/babel" src="../src/components/AICopilot.js"></script>
+    <script type="text/babel" src="../src/components/ConsentManager.js"></script>
+    <script type="text/babel" src="../src/components/DigitalIdentity.js"></script>
+    <script type="text/babel" src="../src/components/UPIPayments.js"></script>
+    <script type="text/babel" src="../src/components/Browser.js"></script>
+    <script type="text/babel" src="../src/App.js"></script>
+    
+    <script>
+        // Start the development server for React components
+        const express = require('express');
+        const path = require('path');
+        
+        if (typeof module !== 'undefined' && module.exports) {
+            const app = express();
+            const PORT = 5000;
+            
+            app.use(express.static(path.join(__dirname, '../')));
+            
+            app.get('*', (req, res) => {
+                res.sendFile(path.join(__dirname, 'index.html'));
+            });
+            
+            app.listen(PORT, '0.0.0.0', () => {
+                console.log(`Server running on http://0.0.0.0:${PORT}`);
+            });
+        }
+    </script>
+</body>
+</html>

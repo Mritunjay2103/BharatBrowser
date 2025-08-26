@@ -1,0 +1,591 @@
+/* UPIPayments.css */
+.upi-payments {
+  background: #ffffff;
+  height: 100%;
+}
+
+.payment-header {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #1f2937;
+}
+
+.payment-header h6 {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.status-bar {
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.payment-content {
+  background: #f8f9fa;
+  overflow-y: auto;
+}
+
+/* Payment Amount Selector */
+.payment-selector {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.payment-selector h5 {
+  color: #374151;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.payment-form {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.payment-input {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.payment-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  outline: none;
+}
+
+.amount-input {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.quick-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.quick-amount-btn {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.quick-amount-btn:hover {
+  border-color: #f59e0b;
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.quick-amount-btn.selected {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #d97706;
+  color: white;
+}
+
+.proceed-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  width: 100%;
+  transition: all 0.3s ease;
+  margin-top: 1.5rem;
+}
+
+.proceed-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.proceed-button:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Payment Summary */
+.payment-summary {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.summary-label {
+  color: #92400e;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.summary-value {
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.summary-amount {
+  font-size: 1.2rem;
+  color: #d97706;
+}
+
+/* UPI App Selector */
+.app-selector {
+  text-align: center;
+}
+
+.app-selector h5 {
+  color: #374151;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.back-button {
+  background: none;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  margin-bottom: 1.5rem;
+}
+
+.back-button:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: #fef3c7;
+}
+
+.upi-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.upi-app-card {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  text-align: center;
+}
+
+.upi-app-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.upi-app-card.phonepe {
+  border-color: #8b5cf6;
+}
+
+.upi-app-card.phonepe:hover {
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.upi-app-card.gpay {
+  border-color: #3b82f6;
+}
+
+.upi-app-card.gpay:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.upi-app-card.paytm {
+  border-color: #06b6d4;
+}
+
+.upi-app-card.paytm:hover {
+  border-color: #06b6d4;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+}
+
+.upi-app-card.bhim {
+  border-color: #10b981;
+}
+
+.upi-app-card.bhim:hover {
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.app-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem auto;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.app-icon.phonepe {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.app-icon.gpay {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.app-icon.paytm {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.app-icon.bhim {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.app-name {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.redirect-notice {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 1rem;
+}
+
+/* Payment Processing */
+.processing-screen {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #6b7280;
+}
+
+.processing-spinner {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  color: #f59e0b;
+}
+
+.processing-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.processing-message {
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.processing-note {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+/* Payment Confirmation */
+.confirmation-screen {
+  text-align: center;
+  padding: 2rem;
+}
+
+.success-confirmation .confirmation-icon {
+  font-size: 4rem;
+  color: #10b981;
+  margin-bottom: 1rem;
+  animation: successBounce 1s ease-in-out;
+}
+
+.failure-confirmation .confirmation-icon {
+  font-size: 4rem;
+  color: #ef4444;
+  margin-bottom: 1rem;
+  animation: failureShake 0.5s ease-in-out;
+}
+
+@keyframes successBounce {
+  0%, 20%, 60%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-20px); }
+  80% { transform: translateY(-10px); }
+}
+
+@keyframes failureShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.confirmation-title.success {
+  color: #10b981;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.confirmation-title.failure {
+  color: #ef4444;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.transaction-details {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.transaction-details.failure {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.detail-value {
+  color: #374151;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
+}
+
+.transaction-id {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.amount-highlight {
+  font-size: 1.1rem;
+  color: #059669;
+}
+
+.new-payment-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.new-payment-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Currency Symbol Styling */
+.currency-symbol {
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .payment-content {
+    padding: 1rem !important;
+  }
+  
+  .payment-selector {
+    padding: 1.5rem;
+  }
+  
+  .quick-amounts {
+    gap: 0.25rem;
+  }
+  
+  .quick-amount-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .upi-apps-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .upi-app-card {
+    padding: 1rem 0.75rem;
+  }
+  
+  .app-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+  
+  .app-name {
+    font-size: 0.9rem;
+  }
+  
+  .transaction-details {
+    padding: 1rem;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+  
+  .detail-value {
+    text-align: left;
+    margin-top: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-header {
+    padding: 1rem !important;
+  }
+  
+  .payment-selector h5 {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .quick-amounts {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .upi-apps-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .upi-app-card {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    text-align: left;
+  }
+  
+  .app-icon {
+    margin: 0 1rem 0 0;
+  }
+  
+  .confirmation-screen {
+    padding: 1rem;
+  }
+  
+  .confirmation-icon {
+    font-size: 3rem !important;
+  }
+}
+
+/* Animation for step transitions */
+.payment-step {
+  animation: slideInUp 0.3s ease-in-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom focus indicators for accessibility */
+.upi-app-card:focus {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+.quick-amount-btn:focus,
+.proceed-button:focus,
+.new-payment-button:focus,
+.back-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Loading animation for processing */
+.processing-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Hover effects for better UX */
+.transaction-details:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.payment-summary:hover {
+  border-color: #d97706;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+}
