@@ -103,10 +103,18 @@ function Browser({ onSidebarToggle, onSidebarChange }) {
         if (!url.trim()) return;
         
         let formattedUrl = url.trim();
+        
+        // Detect if it's a URL or search term
         if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
-            if (formattedUrl.includes('.') && !formattedUrl.includes(' ')) {
+            // Check if it looks like a domain (contains dot, no spaces, reasonable length)
+            if (formattedUrl.includes('.') && 
+                !formattedUrl.includes(' ') && 
+                formattedUrl.length > 4 && 
+                !formattedUrl.startsWith('.') &&
+                !formattedUrl.endsWith('.')) {
                 formattedUrl = 'https://' + formattedUrl;
             } else {
+                // It's a search query - use Google search
                 formattedUrl = 'https://www.google.com/search?q=' + encodeURIComponent(formattedUrl);
             }
         }
@@ -115,8 +123,8 @@ function Browser({ onSidebarToggle, onSidebarChange }) {
         setCurrentUrl(formattedUrl);
         updateTabUrl(formattedUrl);
         
-        // Simulate loading
-        setTimeout(() => setIsLoading(false), 1000);
+        // Simulate loading with more realistic timing
+        setTimeout(() => setIsLoading(false), 1500);
     };
 
     const reloadCurrentTab = () => {
