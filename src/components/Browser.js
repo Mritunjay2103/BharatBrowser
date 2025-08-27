@@ -189,15 +189,33 @@ function Browser({ onSidebarToggle, onSidebarChange }) {
         }),
 
         // Webview container
-        React.createElement('div', { className: 'webview-container' },
+        React.createElement('div', { 
+            className: 'webview-container',
+            style: { 
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                height: 'calc(100vh - 48px - 56px)', // Subtract tab bar and nav bar heights
+                minHeight: 0
+            }
+        },
             currentUrl && currentUrl !== 'about:blank' ?
                 React.createElement('iframe', {
                     ref: webviewRef,
                     className: 'webview',
                     src: currentUrl,
-                    title: 'Browser Content'
+                    title: 'Browser Content',
+                    style: {
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        flex: 1
+                    }
                 }) :
-                React.createElement('div', { className: 'empty-state d-flex align-items-center justify-content-center h-100' },
+                React.createElement('div', { 
+                    className: 'empty-state d-flex align-items-center justify-content-center',
+                    style: { height: '100%', width: '100%' }
+                },
                     React.createElement('div', { className: 'text-center' },
                         React.createElement('i', { className: 'fas fa-globe fa-4x text-muted mb-3' }),
                         React.createElement('h4', { className: 'text-muted' }, 'Start browsing'),
