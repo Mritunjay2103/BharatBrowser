@@ -6,7 +6,10 @@ function Browser({ onSidebarToggle, onSidebarChange }) {
     ]);
     const [currentUrl, setCurrentUrl] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [webviewHeight, setWebviewHeight] = useState('100vh');
     const webviewRef = useRef(null);
+    const tabBarRef = useRef(null);
+    const navBarRef = useRef(null);
 
     useEffect(() => {
         // Set up IPC listeners for browser controls
@@ -30,6 +33,29 @@ function Browser({ onSidebarToggle, onSidebarChange }) {
                 window.electronAPI.removeAllListeners('close-tab');
                 window.electronAPI.removeAllListeners('reload-page');
             }
+        };
+    }, []);
+
+    useEffect(() => {
+        // Calculate webview height dynamically
+        const calculateWebviewHeight = () => {
+            const tabBarHeight = tabBarRef.current?.offsetHeight || 48;
+            const navBarHeight = navBarRef.current?.offsetHeight || 56;
+            const totalHeaderHeight = tabBarHeight + navBarHeight;
+            const availableHeight = window.innerHeight - totalHeaderHeight;
+            setWebviewHeight(`${availableHeight}px`);
+        };
+
+        // Calculate on mount and resize
+        calculateWebviewHeight();
+        window.addEventListener('resize', calculateWebviewHeight);
+
+        // Also recalculate after a short delay to ensure DOM is ready
+        const timer = setTimeout(calculateWebviewHeight, 100);
+
+        return () => {
+            window.removeEventListener('resize', calculateWebviewHeight);
+            clearTimeout(timer);
         };
     }, []);
 
@@ -147,7 +173,10 @@ function Browser({ onSidebarToggle, onSidebarChange }) {
 
     return React.createElement('div', { className: 'main-browser' },
         // Tab bar
-        React.createElement('div', { className: 'tab-bar d-flex bg-light border-bottom' },
+        React.createElement('div', { 
+            ref: tabBarRef,
+            className: 'tab-bar d-flex bg-light border-bottom' 
+        },
             tabs.map(tab =>
                 React.createElement('div', {
                     key: tab.id,
@@ -177,26 +206,26 @@ function Browser({ onSidebarToggle, onSidebarChange }) {
         ),
 
         // Navigation bar
-        React.createElement(NavigationBar, {
-            currentUrl,
-            isLoading,
-            onNavigate: navigateToUrl,
-            onBack: goBack,
-            onForward: goForward,
-            onReload: reloadCurrentTab,
-            onSidebarToggle,
-            onSidebarChange
-        }),
+        React.createElement('div', { ref: navBarRef },
+            React.createElement(NavigationBar, {
+                currentUrl,
+                isLoading,
+                onNavigate: navigateToUrl,
+                onBack: goBack,
+                onForward: goForward,
+                onReload: reloadCurrentTab,
+                onSidebarToggle,
+                onSidebarChange
+            })
+        ),
 
         // Webview container
         React.createElement('div', { 
             className: 'webview-container',
             style: { 
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                height: 'calc(100vh - 48px - 56px)', // Subtract tab bar and nav bar heights
-                minHeight: 0
+                height: webviewHeight,
+                width: '100%',
+                position: 'relative'
             }
         },
             currentUrl && currentUrl !== 'about:blank' ?
@@ -209,12 +238,18 @@ function Browser({ onSidebarToggle, onSidebarChange }) {
                         width: '100%',
                         height: '100%',
                         border: 'none',
-                        flex: 1
+                        display: 'block'
                     }
                 }) :
                 React.createElement('div', { 
                     className: 'empty-state d-flex align-items-center justify-content-center',
-                    style: { height: '100%', width: '100%' }
+                    style: { 
+                        height: '100%', 
+                        width: '100%',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0
+                    }
                 },
                     React.createElement('div', { className: 'text-center' },
                         React.createElement('i', { className: 'fas fa-globe fa-4x text-muted mb-3' }),
