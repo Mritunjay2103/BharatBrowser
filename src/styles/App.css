@@ -18,6 +18,8 @@
   display: flex;
   flex-direction: column;
   background: #ffffff;
+  min-height: 0; /* Ensures proper flex behavior */
+  overflow: hidden; /* Prevents scrollbars on main container */
 }
 
 .sidebar {
