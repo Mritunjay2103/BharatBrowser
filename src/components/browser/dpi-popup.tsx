@@ -6,7 +6,7 @@ import {
   UserSquare2,
   IndianRupee,
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AiCopilot from "./ai-copilot";
 import ConsentManager, { Consent } from "./consent-manager";
@@ -35,32 +35,30 @@ export default function DpiPopup({ open, pageContent, pageVersion }: DpiPopupPro
   return (
     <div
       data-state={open ? "open" : "closed"}
-      className="absolute right-4 top-4 z-50 w-[350px] origin-top-right transition-all duration-300 ease-in-out data-[state=closed]:pointer-events-none data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[state=open]:scale-100 data-[state=open]:opacity-100"
+      className="absolute right-4 top-4 z-50 w-[380px] origin-top-right transition-all duration-300 ease-in-out data-[state=closed]:pointer-events-none data-[state=closed]:scale-95 data-[state=closed]:opacity-0 data-[state=open]:scale-100 data-[state=open]:opacity-100"
     >
-      <Card className="h-[500px] w-full overflow-hidden border-primary/20 shadow-2xl shadow-primary/10">
+      <Card className="h-[600px] w-full overflow-hidden rounded-2xl border-white/20 bg-black/30 shadow-2xl shadow-black/50 backdrop-blur-2xl">
         <Tabs defaultValue="copilot" className="flex h-full flex-col">
-          <CardHeader className="p-0">
-            <TabsList className="grid w-full grid-cols-4 rounded-none bg-secondary/50 p-0">
-              <TabsTrigger value="copilot" className="rounded-none py-3 text-xs data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none">
-                <Bot className="mb-1 h-5 w-5" />
-                Copilot
-              </TabsTrigger>
-              <TabsTrigger value="consent" className="rounded-none py-3 text-xs data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none">
-                <ToggleRight className="mb-1 h-5 w-5" />
-                Consent
-              </TabsTrigger>
-              <TabsTrigger value="identity" className="rounded-none py-3 text-xs data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none">
-                <UserSquare2 className="mb-1 h-5 w-5" />
-                Identity
-              </TabsTrigger>
-              <TabsTrigger value="payments" className="rounded-none py-3 text-xs data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none">
-                <IndianRupee className="mb-1 h-5 w-5" />
-                Payments
-              </TabsTrigger>
-            </TabsList>
-          </CardHeader>
-          <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-[calc(500px-58px)]">
+          <TabsList className="grid h-auto w-full grid-cols-4 rounded-none bg-black/30 p-1">
+            <TabsTrigger value="copilot" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-blue-600/50 data-[state=active]:text-white">
+              <Bot className="h-5 w-5" />
+              Copilot
+            </TabsTrigger>
+            <TabsTrigger value="consent" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-blue-600/50 data-[state=active]:text-white">
+              <ToggleRight className="h-5 w-5" />
+              Consent
+            </TabsTrigger>
+            <TabsTrigger value="identity" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-blue-600/50 data-[state=active]:text-white">
+              <UserSquare2 className="h-5 w-5" />
+              Identity
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-blue-600/50 data-[state=active]:text-white">
+              <IndianRupee className="h-5 w-5" />
+              Payments
+            </TabsTrigger>
+          </TabsList>
+          
+          <ScrollArea className="flex-1">
               <TabsContent value="copilot" className="m-0 p-4">
                 <AiCopilot pageContent={pageContent} pageVersion={pageVersion} />
               </TabsContent>
@@ -73,8 +71,7 @@ export default function DpiPopup({ open, pageContent, pageVersion }: DpiPopupPro
               <TabsContent value="payments" className="m-0 p-4">
                 <UpiPayments consents={consents} />
               </TabsContent>
-            </ScrollArea>
-          </CardContent>
+          </ScrollArea>
         </Tabs>
       </Card>
     </div>

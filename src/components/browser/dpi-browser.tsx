@@ -7,25 +7,22 @@ import DpiPopup from "./dpi-popup";
 
 export default function DPIBrowser() {
   const [url, setUrl] = useState("https://www.wikipedia.org/");
-  // This is the source for the iframe, which will always be our proxy
   const [iframeSrc, setIframeSrc] = useState("about:blank");
   const [isLoading, setIsLoading] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [pageContent, setPageContent] = useState('');
-  const [pageVersion, setPageVersion] = useState(0); // Used to trigger summary refresh
+  const [pageVersion, setPageVersion] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Memoize handleNavigate to prevent re-creation on every render
   const handleNavigate = useCallback((newUrl: string, type: 'new' | 'history' = 'new') => {
     if (!newUrl || newUrl === 'about:blank' || (type === 'new' && newUrl === url) ) return;
     
     setIsLoading(true);
-    setPageContent(''); // Clear old content immediately
-    setUrl(newUrl); // Update address bar immediately
+    setPageContent('');
+    setUrl(newUrl);
     
-    // All navigation goes through our proxy
     const proxyUrl = `/api/proxy?url=${encodeURIComponent(newUrl)}`;
     setIframeSrc(proxyUrl);
 
@@ -35,24 +32,20 @@ export default function DPIBrowser() {
         setHistory(newHistory);
         setHistoryIndex(newHistory.length - 1);
     }
-  }, [history, historyIndex, url]); // Add dependencies
+  }, [history, historyIndex, url]);
 
   useEffect(() => {
-    // Initial load
     handleNavigate(url, 'new');
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
+  }, []);
 
-  // This function is passed to the iframe, and the iframe calls it when its content has loaded
   const handleIframeLoad = useCallback((data: { finalUrl?: string; content?: string; error?: string }) => {
     setIsLoading(false);
     if (data.error) {
         setPageContent(`Error loading page: ${data.error}`);
     } else {
-        // The proxy tells us the final URL and gives us the content
         if (data.finalUrl && data.finalUrl !== url) {
             setUrl(data.finalUrl);
-            // Update history with the final redirected URL
             const newHistory = [...history];
             if (newHistory[historyIndex] !== data.finalUrl) {
                 newHistory[historyIndex] = data.finalUrl;
@@ -61,14 +54,12 @@ export default function DPIBrowser() {
         }
         setPageContent(data.content || '');
     }
-    // Increment version to trigger re-summarization in AiCopilot
     setPageVersion(v => v + 1);
   }, [url, history, historyIndex]);
 
   const handleRefresh = () => {
     if (iframeSrc && iframeSrc !== 'about:blank') {
         setIsLoading(true);
-        // Re-request from the proxy, adding a timestamp to bypass cache
         const cacheBuster = `&t=${Date.now()}`;
         setIframeSrc(iframeSrc.split('&t=')[0] + cacheBuster);
     }
@@ -90,12 +81,8 @@ export default function DPIBrowser() {
     }
   };
   
-  // This useEffect will listen for navigation events from the iframe content
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Basic security: check origin if you have a known domain
-      // if (event.origin !== window.location.origin) return;
-
       const { type, url: newUrl } = event.data;
       if (type === 'navigate') {
         handleNavigate(newUrl, 'new');
@@ -110,7 +97,7 @@ export default function DPIBrowser() {
 
 
   return (
-    <div className="flex h-screen w-full flex-col bg-card font-sans">
+    <div className="flex h-screen w-full flex-col bg-gradient-to-br from-[#0a192f] via-[#112240] to-[#243b55] font-sans">
       <BrowserChrome
         url={url}
         onNavigate={(newUrl) => handleNavigate(newUrl, 'new')}
@@ -123,7 +110,7 @@ export default function DPIBrowser() {
         canGoForward={historyIndex < history.length - 1}
         isLoading={isLoading}
       />
-      <div className="relative flex-1">
+      <div className="relative flex-1 overflow-hidden">
         <BrowserView
           ref={iframeRef}
           proxySrc={iframeSrc}

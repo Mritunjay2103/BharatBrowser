@@ -9,6 +9,7 @@ import {
   Loader2,
   AppWindow,
   X,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,6 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  PopoverAnchor,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { POPULAR_SITES } from "@/lib/constants";
@@ -58,11 +58,9 @@ export default function BrowserChrome({
     const term = value.trim();
     if (term) {
       try {
-        // Check if it's a valid URL, if not, could be a partial one
         new URL(term);
         onNavigate(term);
       } catch (_) {
-        // Not a full URL, check for common patterns
         if (term.includes(".") && !term.includes(" ")) {
           onNavigate(`https://${term}`);
         } else {
@@ -79,20 +77,20 @@ export default function BrowserChrome({
   );
 
   return (
-    <header className="flex h-14 items-center gap-2 border-b bg-background/50 px-4 backdrop-blur-sm">
+    <header className="flex h-16 items-center gap-4 border-b border-white/10 bg-gradient-to-b from-white/10 to-transparent px-4 shadow-lg">
       <div className="flex items-center gap-2">
-        <div className="h-3 w-3 rounded-full bg-red-500"></div>
-        <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-        <div className="h-3 w-3 rounded-full bg-green-500"></div>
+        <div className="h-3.5 w-3.5 rounded-full bg-red-500"></div>
+        <div className="h-3.5 w-3.5 rounded-full bg-yellow-500"></div>
+        <div className="h-3.5 w-3.5 rounded-full bg-green-500"></div>
       </div>
-      <div className="ml-4 flex items-center gap-1">
-        <Button variant="ghost" size="icon" onClick={onBack} disabled={!canGoBack}>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="icon" onClick={onBack} disabled={!canGoBack} className="h-8 w-8 rounded-full">
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={onForward} disabled={!canGoForward}>
+        <Button variant="ghost" size="icon" onClick={onForward} disabled={!canGoForward} className="h-8 w-8 rounded-full">
           <ChevronRight className="h-5 w-5" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={onRefresh} disabled={isLoading}>
+        <Button variant="ghost" size="icon" onClick={onRefresh} disabled={isLoading} className="h-8 w-8 rounded-full">
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
@@ -102,9 +100,9 @@ export default function BrowserChrome({
       </div>
 
       <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
-        <PopoverAnchor asChild>
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <PopoverTrigger asChild>
             <Input
               ref={inputRef}
               value={inputValue}
@@ -116,17 +114,17 @@ export default function BrowserChrome({
                 }
               }}
               placeholder="Search or type a URL"
-              className="pl-9"
+              className="h-10 rounded-full bg-black/30 pl-10 text-base shadow-inner focus:bg-black/50 focus:ring-2 focus:ring-blue-500/50"
             />
-          </div>
-        </PopoverAnchor>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-1" onOpenAutoFocus={(e) => e.preventDefault()}>
+          </PopoverTrigger>
+        </div>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-1 border-white/20 bg-background/80 backdrop-blur-lg" onOpenAutoFocus={(e) => e.preventDefault()}>
           <div className="flex flex-col gap-1">
             {filteredSites.map((site) => (
               <button
                 key={site.name}
                 onClick={() => handleSearchOrNavigate(site.url)}
-                className="flex items-center gap-3 rounded-md p-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                className="flex items-center gap-3 rounded-md p-2 text-left text-sm transition-colors hover:bg-white/10"
               >
                 <site.icon className="h-4 w-4 text-muted-foreground" />
                 <span>{site.name}</span>
@@ -136,7 +134,7 @@ export default function BrowserChrome({
             {filteredSites.length === 0 && inputValue && (
               <button
                 onClick={() => handleSearchOrNavigate(inputValue)}
-                className="flex items-center gap-3 rounded-md p-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                className="flex items-center gap-3 rounded-md p-2 text-left text-sm transition-colors hover:bg-white/10"
               >
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <span>Search for "{inputValue}"</span>
@@ -150,9 +148,9 @@ export default function BrowserChrome({
         variant="ghost"
         size="icon"
         onClick={onTogglePopup}
-        className={cn("ml-2", isPopupOpen && "bg-accent text-accent-foreground")}
+        className={cn("ml-2 h-9 w-9 rounded-full transition-all duration-300", isPopupOpen && "bg-blue-500/80 text-white rotate-90")}
       >
-        {isPopupOpen ? <X className="h-5 w-5"/> : <AppWindow className="h-5 w-5" />}
+        {isPopupOpen ? <X className="h-5 w-5"/> : <Sparkles className="h-5 w-5" />}
       </Button>
     </header>
   );

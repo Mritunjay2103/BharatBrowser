@@ -29,10 +29,7 @@ const BrowserView = forwardRef<HTMLIFrameElement, BrowserViewProps>(
                         onContentLoaded({ error: data.details || data.error });
                         iframe.srcdoc = data.html || `<p>Error: ${data.error}</p>`;
                     } else {
-                        // Pass the final URL and content up to the parent
                         onContentLoaded({ finalUrl: data.finalUrl, content: data.content });
-                        
-                        // Set the iframe content. We add a script to handle navigation.
                         iframe.srcdoc = data.html + `
                           <script>
                             document.addEventListener('click', function(e) {
@@ -41,10 +38,7 @@ const BrowserView = forwardRef<HTMLIFrameElement, BrowserViewProps>(
                                 target = target.parentElement;
                               }
                               if (target && target.tagName === 'A' && target.href) {
-                                // Prevent default navigation
                                 e.preventDefault();
-                                
-                                // Send message to parent window to handle navigation
                                 const href = target.getAttribute('href');
                                 const urlParams = new URLSearchParams(href.split('?')[1]);
                                 const newUrl = urlParams.get('url');
@@ -52,7 +46,7 @@ const BrowserView = forwardRef<HTMLIFrameElement, BrowserViewProps>(
                                    window.parent.postMessage({ type: 'navigate', url: newUrl }, '*');
                                 }
                               }
-                            }, true); // Use capture phase to catch clicks early
+                            }, true);
                           <\/script>
                         `;
                     }
@@ -61,7 +55,9 @@ const BrowserView = forwardRef<HTMLIFrameElement, BrowserViewProps>(
                     console.error("Error fetching proxied content:", err);
                     const errorMsg = 'Failed to load content from proxy.';
                     onContentLoaded({ error: errorMsg });
-                    iframe.srcdoc = `<p>${errorMsg}</p>`;
+                    if (iframe) {
+                        iframe.srcdoc = `<p>${errorMsg}</p>`;
+                    }
                 });
         } else if (proxySrc === 'about:blank' && ref && 'current' in ref && ref.current) {
            ref.current.srcdoc = ' '; // Clear the iframe
@@ -69,19 +65,19 @@ const BrowserView = forwardRef<HTMLIFrameElement, BrowserViewProps>(
     }, [proxySrc, onContentLoaded, ref]);
 
     return (
-      <div className="relative h-full w-full bg-background">
+      <div className="relative h-full w-full bg-gray-800">
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+            <div className="flex flex-col items-center">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
+              <p className="mt-2 text-sm text-foreground">Loading Page...</p>
+            </div>
           </div>
         )}
         <iframe
           ref={ref}
           className="h-full w-full border-0"
           title="Browser View"
-          // Sandbox is crucial for security, but allow-forms and allow-scripts are needed for interactivity.
-          // allow-top-navigation-by-user-activation is important
-          // allow-popups for things like OAuth
           sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation"
         />
       </div>
