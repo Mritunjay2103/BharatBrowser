@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import BrowserChrome from "./browser-chrome";
 import BrowserView from "./browser-view";
 import DpiPopup from "./dpi-popup";
@@ -12,11 +12,35 @@ export default function DPIBrowser() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [history, setHistory] = useState<string[]>(["https://www.wikipedia.org/"]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [pageContent, setPageContent] = useState('');
+  const [pageVersion, setPageVersion] = useState(0); // Used to trigger summarization
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const extractContent = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      try {
+        const body = iframeRef.current.contentWindow.document.body;
+        // A simple heuristic to get main content, could be improved.
+        const mainContent = body.querySelector('main') || body.querySelector('article') || body;
+        let text = mainContent.innerText.trim();
+        if (text.length > 5000) {
+          text = text.substring(0, 5000);
+        }
+        setPageContent(text);
+        setPageVersion(v => v + 1); // Increment to trigger summary
+      } catch (e) {
+        console.error("Content extraction failed:", e);
+        setPageContent('');
+        setPageVersion(v => v + 1);
+      }
+    }
+  };
 
   const handleNavigate = (newUrl: string) => {
     setIsLoading(true);
     setIframeSrc(newUrl);
     setUrl(newUrl);
+    setPageContent('');
     
     // Update history
     const newHistory = history.slice(0, historyIndex + 1);
@@ -42,6 +66,7 @@ export default function DPIBrowser() {
       setIsLoading(true);
       setIframeSrc(backUrl);
       setUrl(backUrl);
+      setPageContent('');
     }
   };
 
@@ -53,6 +78,7 @@ export default function DPIBrowser() {
       setIsLoading(true);
       setIframeSrc(forwardUrl);
       setUrl(forwardUrl);
+      setPageContent('');
     }
   };
 
@@ -72,11 +98,15 @@ export default function DPIBrowser() {
       />
       <div className="relative flex-1">
         <BrowserView
+          ref={iframeRef}
           src={iframeSrc}
-          onLoad={() => setIsLoading(false)}
+          onLoad={() => {
+            setIsLoading(false);
+            extractContent();
+          }}
           isLoading={isLoading}
         />
-        <DpiPopup open={isPopupOpen} />
+        <DpiPopup open={isPopupOpen} pageContent={pageContent} pageVersion={pageVersion} />
       </div>
     </div>
   );

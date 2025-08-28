@@ -16,9 +16,11 @@ import { ScrollArea } from "../ui/scroll-area";
 
 type DpiPopupProps = {
   open: boolean;
+  pageContent: string;
+  pageVersion: number;
 };
 
-export default function DpiPopup({ open }: DpiPopupProps) {
+export default function DpiPopup({ open, pageContent, pageVersion }: DpiPopupProps) {
   return (
     <div
       data-state={open ? "open" : "closed"}
@@ -49,7 +51,7 @@ export default function DpiPopup({ open }: DpiPopupProps) {
           <CardContent className="flex-1 p-0">
             <ScrollArea className="h-[calc(500px-58px)]">
               <TabsContent value="copilot" className="m-0 p-4">
-                <AiCopilot />
+                <AiCopilot pageContent={pageContent} pageVersion={pageVersion} />
               </TabsContent>
               <TabsContent value="consent" className="m-0 p-4">
                 <ConsentManager />

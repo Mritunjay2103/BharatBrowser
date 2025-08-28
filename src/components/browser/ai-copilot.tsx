@@ -1,76 +1,149 @@
 "use client";
 
-import { useState } from "react";
-import { Bot, Loader2, Sparkles } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Bot, Loader2, Sparkles, Send, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "../ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { aiCopilotGenerate } from "@/ai/flows/ai-copilot-generate";
+import { summarizeAndChat } from "@/ai/flows/summarize-and-chat";
+import type { Message } from "@/ai/flows/summarize-and-chat.types";
 
-export default function AiCopilot() {
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
+
+type AiCopilotProps = {
+  pageContent: string;
+  pageVersion: number;
+};
+
+export default function AiCopilot({ pageContent, pageVersion }: AiCopilotProps) {
+  const [chatHistory, setChatHistory] = useState<Message[]>([]);
+  const [summary, setSummary] = useState('');
+  const [question, setQuestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+  useEffect(() => {
+    if (pageContent) {
+      const getSummary = async () => {
+        setIsSummarizing(true);
+        setSummary('');
+        setChatHistory([]); // Reset chat on new page
+        try {
+          const result = await summarizeAndChat({
+            content: pageContent,
+            question: "Summarize this content in bullet points.",
+            history: [],
+          });
+          setSummary(result.answer);
+        } catch (error) {
+          console.error("AI summarization failed:", error);
+          setSummary("Sorry, I couldn't summarize this page.");
+        } finally {
+          setIsSummarizing(false);
+        }
+      };
+      getSummary();
+    } else {
+      setSummary('');
+      setChatHistory([]);
+    }
+  }, [pageContent, pageVersion]);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
+
+  const handleAskQuestion = async () => {
+    if (!question.trim()) return;
+
+    const newHistory: Message[] = [...chatHistory, { role: 'user', content: question }];
+    setChatHistory(newHistory);
     setIsLoading(true);
-    setResponse("");
+    setQuestion('');
+
     try {
-      const result = await aiCopilotGenerate({ prompt });
-      setResponse(result.response);
+      const result = await summarizeAndChat({
+        content: pageContent,
+        question: question,
+        history: newHistory.slice(0, -1), // Send history before the new question
+      });
+      setChatHistory([...newHistory, { role: 'assistant', content: result.answer }]);
     } catch (error) {
-      console.error("AI generation failed:", error);
-      setResponse("Sorry, something went wrong. Please try again.");
+      console.error("AI chat failed:", error);
+      setChatHistory([...newHistory, { role: 'assistant', content: "Sorry, something went wrong. Please try again." }]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="font-semibold text-foreground">AI Copilot</h3>
-      <div className="grid w-full gap-2">
-        <Textarea
-          placeholder="Ask me anything..."
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          className="bg-background"
-        />
-        <Button onClick={handleGenerate} disabled={isLoading || !prompt.trim()}>
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="mr-2 h-4 w-4" />
-          )}
-          Generate
-        </Button>
-      </div>
-
-      {isLoading && (
-        <div className="flex items-center justify-center rounded-lg border bg-background p-8">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+    <div className="flex h-full flex-col space-y-4">
+      <h3 className="flex-shrink-0 font-semibold text-foreground">AI Copilot</h3>
+      
+      {isSummarizing && (
+        <div className="flex items-center justify-center rounded-lg border bg-background p-4 text-sm">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Summarizing...
         </div>
       )}
 
-      {!isLoading && response && (
-        <Card className="bg-background">
-          <CardHeader>
-            <CardTitle className="flex items-center text-base">
-              <Bot className="mr-2 h-5 w-5" /> AI Response
+      {summary && !isSummarizing && (
+        <Card className="bg-background/50 flex-shrink-0">
+          <CardHeader className="p-3">
+            <CardTitle className="flex items-center text-sm font-medium">
+              <Sparkles className="mr-2 h-4 w-4 text-primary" /> Page Summary
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-foreground/80">{response}</p>
+          <CardContent className="p-3 pt-0 text-xs text-foreground/80">
+            {summary}
           </CardContent>
         </Card>
       )}
 
-      {!isLoading && !response && (
-         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed bg-background p-8 text-center">
-            <Sparkles className="h-8 w-8 text-muted-foreground" />
-            <p className="mt-2 text-sm text-muted-foreground">Your AI-generated content will appear here.</p>
-        </div>
+      {!pageContent && !isSummarizing && (
+        <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed bg-background p-8 text-center">
+           <Bot className="h-8 w-8 text-muted-foreground" />
+           <p className="mt-2 text-sm text-muted-foreground">Page summary and chat will appear here once a page is loaded.</p>
+       </div>
+      )}
+      
+      {pageContent && (
+        <>
+          <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto rounded-lg border bg-background/30 p-4">
+            {chatHistory.map((message, index) => (
+              <div key={index} className={`flex items-start gap-3 ${message.role === 'user' ? 'justify-end' : ''}`}>
+                {message.role === 'assistant' && <Bot className="h-5 w-5 flex-shrink-0 text-primary" />}
+                <div className={`rounded-lg p-3 text-sm ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  {message.content}
+                </div>
+                {message.role === 'user' && <User className="h-5 w-5 flex-shrink-0" />}
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex items-start gap-3">
+                <Bot className="h-5 w-5 flex-shrink-0 text-primary" />
+                <div className="rounded-lg bg-muted p-3">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <Input
+              placeholder="Ask a follow-up..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleAskQuestion()}
+              disabled={isLoading || isSummarizing}
+              className="bg-background"
+            />
+            <Button onClick={handleAskQuestion} disabled={isLoading || isSummarizing || !question.trim()} size="icon">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );
