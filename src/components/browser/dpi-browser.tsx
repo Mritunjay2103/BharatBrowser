@@ -16,20 +16,29 @@ export default function DPIBrowser() {
   const [pageVersion, setPageVersion] = useState(0); // Used to trigger summarization
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const extractContent = () => {
-    // Content extraction is only possible for same-origin iframes.
-    // For a real browser, this would require a browser extension architecture
-    // or APIs not available in a standard web iframe. We will disable it
-    // for cross-origin content to prevent security errors.
+  const extractContent = async (fetchUrl: string) => {
+    setIsLoading(true);
     setPageContent('');
-    setPageVersion(v => v + 1);
+    try {
+      const response = await fetch(`/api/proxy?url=${encodeURIComponent(fetchUrl)}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch content: ${response.statusText}`);
+      }
+      const { content } = await response.json();
+      setPageContent(content);
+    } catch (error) {
+      console.error("Failed to extract content via proxy:", error);
+      setPageContent("Could not load page content. The site may be blocking requests.");
+    } finally {
+        setPageVersion(v => v + 1);
+        setIsLoading(false);
+    }
   };
 
   const handleNavigate = (newUrl: string) => {
-    setIsLoading(true);
     setIframeSrc(newUrl);
     setUrl(newUrl);
-    setPageContent('');
+    extractContent(newUrl);
     
     // Update history
     const newHistory = history.slice(0, historyIndex + 1);
@@ -40,10 +49,10 @@ export default function DPIBrowser() {
 
   const handleRefresh = () => {
     if (iframeSrc) {
-      setIsLoading(true);
-      // Appending a timestamp to the URL to force a reload
-      const reloader = iframeSrc.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
-      setIframeSrc(iframeSrc.split('?')[0].split('&')[0] + reloader);
+        extractContent(iframeSrc);
+        // Appending a timestamp to the URL to force a reload
+        const reloader = iframeSrc.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
+        setIframeSrc(iframeSrc.split('?')[0].split('&')[0] + reloader);
     }
   };
 
@@ -52,10 +61,9 @@ export default function DPIBrowser() {
       const newIndex = historyIndex - 1;
       const backUrl = history[newIndex];
       setHistoryIndex(newIndex);
-      setIsLoading(true);
       setIframeSrc(backUrl);
       setUrl(backUrl);
-      setPageContent('');
+      extractContent(backUrl);
     }
   };
 
@@ -64,10 +72,9 @@ export default function DPIBrowser() {
       const newIndex = historyIndex + 1;
       const forwardUrl = history[newIndex];
       setHistoryIndex(newIndex);
-      setIsLoading(true);
       setIframeSrc(forwardUrl);
       setUrl(forwardUrl);
-      setPageContent('');
+      extractContent(forwardUrl);
     }
   };
 
@@ -90,8 +97,12 @@ export default function DPIBrowser() {
           ref={iframeRef}
           src={iframeSrc}
           onLoad={() => {
-            setIsLoading(false);
-            extractContent();
+            // When the iframe finishes loading, we don't need to do anything here
+            // because content extraction is handled via our proxy.
+            // We just set loading to false for the visual indicator.
+            if(iframeRef.current?.src === iframeSrc) {
+               setIsLoading(false);
+            }
           }}
           isLoading={isLoading}
         />
