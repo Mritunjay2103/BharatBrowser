@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 
+// Helper to create an absolute URL
+const toAbsoluteUrl = (url: string, base: string): string => {
+  try {
+    return new URL(url, base).toString();
+  } catch {
+    return url;
+  }
+};
+
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get('url');
@@ -17,12 +27,12 @@ export async function GET(request: NextRequest) {
         redirect: 'follow'
     });
     
-    const finalUrl = response.url; // Get the final URL after any redirects
+    const finalUrl = response.url;
     const contentType = response.headers.get('content-type') || '';
     
-    // If it's not HTML, just redirect to the final URL
+    // For non-HTML content, we just want to know the final URL, no content needed.
     if (!contentType.includes('text/html')) {
-        return NextResponse.redirect(finalUrl);
+        return NextResponse.json({ finalUrl, content: null });
     }
     
     const html = await response.text();
@@ -32,12 +42,8 @@ export async function GET(request: NextRequest) {
     $('a').each((i, el) => {
         const href = $(el).attr('href');
         if (href) {
-            try {
-                const absoluteUrl = new URL(href, finalUrl).toString();
-                $(el).attr('href', `/api/proxy?url=${encodeURIComponent(absoluteUrl)}`);
-            } catch (e) {
-                // ignore invalid URLs
-            }
+            const absoluteUrl = toAbsoluteUrl(href, finalUrl);
+            $(el).attr('href', `/api/proxy?url=${encodeURIComponent(absoluteUrl)}`);
         }
     });
     
@@ -58,27 +64,21 @@ export async function GET(request: NextRequest) {
       text = text.substring(0, MAX_LENGTH);
     }
     
-    // Return the modified HTML to be rendered in the iframe, and include the extracted text and finalUrl in headers
-    const headers = new Headers();
-    headers.set('X-Final-Url', finalUrl);
-    headers.set('X-Page-Content', encodeURIComponent(text));
-    headers.set('Content-Type', 'text/html; charset=utf-8');
-
-    return new NextResponse($.html(), { status: 200, headers });
-
+    // Instead of returning HTML, we return JSON with the final URL and extracted content.
+    // The iframe will now be responsible for rendering this data.
+    return NextResponse.json({ finalUrl, content: text, html: $.html() });
 
   } catch (error) {
     console.error('Proxy error:', error);
-    // Return the error in the body for the iframe to display
-    const errorHtml = `
-      <html>
-        <body style="font-family: sans-serif; padding: 2rem;">
-          <h1>Error</h1>
-          <p>Failed to fetch and process the URL: ${url}</p>
-          <p>${(error as Error).message}</p>
-        </body>
-      </html>
-    `;
-    return new NextResponse(errorHtml, { status: 500, headers: {'Content-Type': 'text/html'} });
+    // Return the error in JSON format
+    return NextResponse.json(
+        { 
+            error: 'Failed to fetch and process the URL.',
+            details: (error as Error).message,
+            finalUrl: url,
+            content: null,
+        },
+        { status: 500 }
+    );
   }
 }

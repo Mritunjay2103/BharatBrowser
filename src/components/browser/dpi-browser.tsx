@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import BrowserChrome from "./browser-chrome";
 import BrowserView from "./browser-view";
 import DpiPopup from "./dpi-popup";
@@ -25,7 +25,7 @@ export default function DPIBrowser() {
   }, []);
 
   const handleNavigate = (newUrl: string, type: 'new' | 'history' = 'new') => {
-    if (!newUrl || newUrl === 'about:blank') return;
+    if (!newUrl || newUrl === 'about:blank' || (type === 'new' && newUrl === url)) return;
     
     setIsLoading(true);
 
@@ -80,9 +80,9 @@ export default function DPIBrowser() {
       const src = iframe.src;
       if (src && src !== 'about:blank') {
           fetch(src)
-            .then(res => {
-                const finalUrl = res.headers.get('X-Final-Url');
-                const content = res.headers.get('X-Page-Content');
+            .then(res => res.json())
+            .then(data => {
+                const { finalUrl, content } = data;
 
                 if (finalUrl) {
                     setUrl(finalUrl);
@@ -95,14 +95,14 @@ export default function DPIBrowser() {
                 }
                 
                 if (content) {
-                    setPageContent(decodeURIComponent(content));
+                    setPageContent(content);
                 } else {
                     setPageContent('');
                 }
                 setPageVersion(v => v + 1);
             })
             .catch(err => {
-                console.error("Error fetching proxy headers:", err)
+                console.error("Error fetching proxy data:", err)
                 setPageContent('Could not load page content.');
                 setPageVersion(v => v + 1);
             });
