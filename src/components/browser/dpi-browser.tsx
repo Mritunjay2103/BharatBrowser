@@ -18,7 +18,7 @@ function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
 export default function DPIBrowser() {
   const [url, setUrl] = useState("https://www.wikipedia.org/");
   const [iframeSrc, setIframeSrc] = useState("about:blank");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -66,33 +66,38 @@ export default function DPIBrowser() {
     }
   }, [history, historyIndex]);
 
-  const debouncedExtractContent = useCallback(debounce(extractContent, 2000), [extractContent]);
-
   useEffect(() => {
     // Navigate to the initial URL when the component mounts
-    handleNavigate(url);
+    if(url) {
+        handleNavigate(url, 'new');
+    }
   }, []);
 
 
-  const handleNavigate = (newUrl: string) => {
+  const handleNavigate = (newUrl: string, type: 'new' | 'history' = 'new') => {
     if (!newUrl) return;
-    setIframeSrc(newUrl);
+
+    if (type === 'new') {
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(newUrl);
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+    }
+
     setUrl(newUrl);
-    // The content extraction will be triggered by the iframe's onLoad event
-    // to correctly handle redirects and get the final URL.
+    // Use the proxy for the iframe source as well
+    setIframeSrc(`/api/proxy?url=${encodeURIComponent(newUrl)}`); 
     setIsLoading(true);
+    extractContent(newUrl);
   };
 
   const handleRefresh = () => {
-    if (iframeSrc && iframeSrc !== 'about:blank') {
-        const currentSrc = iframeRef.current?.src;
-        if (currentSrc) {
-            setIsLoading(true);
-            extractContent(currentSrc);
-            // Appending a timestamp to the URL to force a reload
-            const reloader = currentSrc.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
-            setIframeSrc(currentSrc.split('?')[0].split('&')[0] + reloader);
-        }
+    if (url && url !== 'about:blank') {
+        setIsLoading(true);
+        extractContent(url);
+        // Appending a timestamp to the URL to force a reload, passed to the proxy
+        const reloader = url.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
+        setIframeSrc(`/api/proxy?url=${encodeURIComponent(url + reloader)}`);
     }
   };
 
@@ -101,7 +106,7 @@ export default function DPIBrowser() {
       const newIndex = historyIndex - 1;
       const backUrl = history[newIndex];
       setHistoryIndex(newIndex);
-      handleNavigate(backUrl);
+      handleNavigate(backUrl, 'history');
     }
   };
 
@@ -110,28 +115,19 @@ export default function DPIBrowser() {
       const newIndex = historyIndex + 1;
       const forwardUrl = history[newIndex];
       setHistoryIndex(newIndex);
-      handleNavigate(forwardUrl);
+      handleNavigate(forwardUrl, 'history');
     }
   };
   
   const handleIframeLoad = () => {
     setIsLoading(false);
-    const iframeUrl = iframeRef.current?.src;
-    if (iframeUrl && iframeUrl !== 'about:blank' && url !== iframeUrl) {
-      // The actual URL loaded in the iframe might be different from what we set,
-      // especially after initial load or redirects. We use the proxy to get the final URL.
-      debouncedExtractContent(iframeUrl);
-    } else if (iframeUrl) {
-      // If the URL is the same, just ensure content is loaded.
-      debouncedExtractContent(iframeUrl);
-    }
   }
 
   return (
     <div className="flex h-screen w-full flex-col bg-card font-sans">
       <BrowserChrome
         url={url}
-        onNavigate={handleNavigate}
+        onNavigate={(newUrl) => handleNavigate(newUrl, 'new')}
         onTogglePopup={() => setIsPopupOpen(!isPopupOpen)}
         isPopupOpen={isPopupOpen}
         onRefresh={handleRefresh}
