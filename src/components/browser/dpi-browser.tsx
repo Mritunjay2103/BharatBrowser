@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import BrowserChrome from "./browser-chrome";
 import BrowserView from "./browser-view";
 import DpiPopup from "./dpi-popup";
@@ -17,6 +17,14 @@ export default function DPIBrowser() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const extractContent = async (fetchUrl: string) => {
+    // Ensure we don't try to fetch an empty URL
+    if (!fetchUrl) {
+        setIsLoading(false);
+        setPageContent("No URL to load content from.");
+        setPageVersion(v => v + 1);
+        return;
+    }
+    
     setIsLoading(true);
     setPageContent('');
     try {
@@ -34,6 +42,13 @@ export default function DPIBrowser() {
         setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (iframeSrc) {
+      extractContent(iframeSrc);
+    }
+  }, []);
+
 
   const handleNavigate = (newUrl: string) => {
     setIframeSrc(newUrl);
