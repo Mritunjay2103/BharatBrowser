@@ -24,7 +24,9 @@ const BrowserView = forwardRef<HTMLIFrameElement, BrowserViewProps>(
           onLoad={onLoad}
           className="h-full w-full border-0"
           title="Browser View"
-          sandbox="allow-forms allow-modals allow-pointer-lock allow-popups allow-presentation allow-same-origin allow-scripts"
+          // By sandboxing and only allowing scripts, we can somewhat prevent iframe navigation
+          // and try to handle it ourselves. This is not foolproof.
+          sandbox="allow-scripts allow-same-origin"
         />
       </div>
     );

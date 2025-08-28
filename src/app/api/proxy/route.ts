@@ -20,14 +20,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: `Failed to fetch the URL, status: ${response.status}` }, { status: response.status });
     }
 
+    const finalUrl = response.url; // Get the final URL after any redirects
     const html = await response.text();
     const $ = cheerio.load(html);
 
     // Remove script and style elements
     $('script, style, noscript, nav, footer, header, aside').remove();
 
-    // Get text from the body, attempting to get meaningful content
-    let text = $('body').text();
+    // Get text from the main content, or body if main is not found
+    let text = $('main').text();
+    if (!text) {
+      text = $('body').text();
+    }
 
     // Basic cleanup
     text = text.replace(/\s\s+/g, ' ').trim();
@@ -37,7 +41,7 @@ export async function GET(request: NextRequest) {
       text = text.substring(0, MAX_LENGTH);
     }
 
-    return NextResponse.json({ content: text });
+    return NextResponse.json({ content: text, finalUrl: finalUrl });
 
   } catch (error) {
     console.error('Proxy error:', error);
