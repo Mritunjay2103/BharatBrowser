@@ -40,19 +40,19 @@ export default function DpiPopup({ open, pageContent, pageVersion }: DpiPopupPro
       <Card className="h-[600px] w-full overflow-hidden rounded-2xl border-white/20 bg-black/30 shadow-2xl shadow-black/50 backdrop-blur-2xl">
         <Tabs defaultValue="copilot" className="flex h-full flex-col">
           <TabsList className="grid h-auto w-full grid-cols-4 rounded-none bg-black/30 p-1">
-            <TabsTrigger value="copilot" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-blue-600/50 data-[state=active]:text-white">
+            <TabsTrigger value="copilot" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-primary/80 data-[state=active]:text-white">
               <Bot className="h-5 w-5" />
               Copilot
             </TabsTrigger>
-            <TabsTrigger value="consent" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-blue-600/50 data-[state=active]:text-white">
+            <TabsTrigger value="consent" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-primary/80 data-[state=active]:text-white">
               <ToggleRight className="h-5 w-5" />
               Consent
             </TabsTrigger>
-            <TabsTrigger value="identity" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-blue-600/50 data-[state=active]:text-white">
+            <TabsTrigger value="identity" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-primary/80 data-[state=active]:text-white">
               <UserSquare2 className="h-5 w-5" />
               Identity
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-blue-600/50 data-[state=active]:text-white">
+            <TabsTrigger value="payments" className="flex-col gap-1 rounded-lg py-2 text-xs data-[state=active]:bg-primary/80 data-[state=active]:text-white">
               <IndianRupee className="h-5 w-5" />
               Payments
             </TabsTrigger>

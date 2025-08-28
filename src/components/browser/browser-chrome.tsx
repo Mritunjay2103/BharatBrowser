@@ -7,7 +7,6 @@ import {
   RefreshCw,
   Search,
   Loader2,
-  AppWindow,
   X,
   Sparkles,
 } from "lucide-react";
@@ -56,28 +55,34 @@ export default function BrowserChrome({
 
   const handleSearchOrNavigate = (value: string) => {
     const term = value.trim();
-    if (term) {
-      try {
-        new URL(term);
-        onNavigate(term);
-      } catch (_) {
-        if (term.includes(".") && !term.includes(" ")) {
-          onNavigate(`https://${term}`);
-        } else {
-          onNavigate(`https://duckduckgo.com/?q=${encodeURIComponent(term)}`);
-        }
+    if (!term) return;
+
+    let navUrl;
+    try {
+      // Check if it's already a valid URL
+      new URL(term);
+      navUrl = term;
+    } catch (_) {
+      // If not a full URL, check if it's a domain-like string
+      if (term.includes(".") && !term.includes(" ")) {
+        navUrl = `https://${term}`;
+      } else {
+        // Otherwise, treat as a search query
+        navUrl = `https://duckduckgo.com/?q=${encodeURIComponent(term)}`;
       }
     }
+    onNavigate(navUrl);
     setShowSuggestions(false);
     inputRef.current?.blur();
   };
   
   const filteredSites = POPULAR_SITES.filter(site => 
-    site.name.toLowerCase().includes(inputValue.toLowerCase())
-  );
+    site.name.toLowerCase().includes(inputValue.toLowerCase()) || 
+    site.url.toLowerCase().includes(inputValue.toLowerCase())
+  ).slice(0, 5); // Limit suggestions
 
   return (
-    <header className="flex h-16 items-center gap-4 border-b border-white/10 bg-gradient-to-b from-white/10 to-transparent px-4 shadow-lg">
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/10 bg-gradient-to-b from-black/20 to-transparent px-4 shadow-lg">
       <div className="flex items-center gap-2">
         <div className="h-3.5 w-3.5 rounded-full bg-red-500"></div>
         <div className="h-3.5 w-3.5 rounded-full bg-yellow-500"></div>
@@ -100,9 +105,9 @@ export default function BrowserChrome({
       </div>
 
       <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <PopoverTrigger asChild>
+        <PopoverTrigger asChild>
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               ref={inputRef}
               value={inputValue}
@@ -114,11 +119,11 @@ export default function BrowserChrome({
                 }
               }}
               placeholder="Search or type a URL"
-              className="h-10 rounded-full bg-black/30 pl-10 text-base shadow-inner focus:bg-black/50 focus:ring-2 focus:ring-blue-500/50"
+              className="h-10 rounded-full bg-black/30 pl-10 text-base shadow-inner backdrop-blur-sm transition-all focus:bg-black/50 focus:ring-2 focus:ring-primary/50"
             />
-          </PopoverTrigger>
-        </div>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-1 border-white/20 bg-background/80 backdrop-blur-lg" onOpenAutoFocus={(e) => e.preventDefault()}>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-1 border-white/20 bg-background/80 backdrop-blur-xl" onOpenAutoFocus={(e) => e.preventDefault()}>
           <div className="flex flex-col gap-1">
             {filteredSites.map((site) => (
               <button
@@ -131,7 +136,7 @@ export default function BrowserChrome({
                 <span className="ml-auto text-xs text-muted-foreground">{site.url}</span>
               </button>
             ))}
-            {filteredSites.length === 0 && inputValue && (
+            {inputValue && (
               <button
                 onClick={() => handleSearchOrNavigate(inputValue)}
                 className="flex items-center gap-3 rounded-md p-2 text-left text-sm transition-colors hover:bg-white/10"
@@ -148,7 +153,7 @@ export default function BrowserChrome({
         variant="ghost"
         size="icon"
         onClick={onTogglePopup}
-        className={cn("ml-2 h-9 w-9 rounded-full transition-all duration-300", isPopupOpen && "bg-blue-500/80 text-white rotate-90")}
+        className={cn("ml-2 h-9 w-9 rounded-full transition-all duration-300 hover:bg-primary/20", isPopupOpen && "bg-primary/80 text-white rotate-90")}
       >
         {isPopupOpen ? <X className="h-5 w-5"/> : <Sparkles className="h-5 w-5" />}
       </Button>

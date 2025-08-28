@@ -100,7 +100,7 @@ export default function UpiPayments({ consents }: UpiPaymentsProps) {
         <Card className="bg-accent/20 text-center">
             <CardHeader>
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-accent">
-                    <CheckCircle className="h-6 w-6" />
+                    <CheckCircle className="h-6 w-6 text-accent-foreground" />
                 </div>
             </CardHeader>
             <CardContent className="space-y-2">
