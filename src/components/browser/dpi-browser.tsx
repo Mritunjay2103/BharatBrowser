@@ -5,16 +5,6 @@ import BrowserChrome from "./browser-chrome";
 import BrowserView from "./browser-view";
 import DpiPopup from "./dpi-popup";
 
-// Simple debounce function
-function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
-  let timeout: NodeJS.Timeout;
-  return (...args: Parameters<F>): void => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), waitFor);
-  };
-}
-
-
 export default function DPIBrowser() {
   const [url, setUrl] = useState("https://www.wikipedia.org/");
   const [iframeSrc, setIframeSrc] = useState("about:blank");
@@ -23,61 +13,23 @@ export default function DPIBrowser() {
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [pageContent, setPageContent] = useState('');
-  const [pageVersion, setPageVersion] = useState(0); // Used to trigger summarization
+  const [pageVersion, setPageVersion] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  const extractContent = useCallback(async (fetchUrl: string) => {
-    if (!fetchUrl || fetchUrl === "about:blank") {
-        setIsLoading(false);
-        setPageContent("");
-        setPageVersion(v => v + 1);
-        return;
-    }
-    
-    setIsLoading(true);
-    setPageContent('');
-
-    try {
-      const response = await fetch(`/api/proxy?url=${encodeURIComponent(fetchUrl)}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch content: ${response.statusText}`);
-      }
-      const { content, finalUrl } = await response.json();
-      
-      // Update URL in address bar to the final URL after redirects
-      setUrl(finalUrl); 
-
-      // Update history if the URL has changed
-      if (history[historyIndex] !== finalUrl) {
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push(finalUrl);
-        setHistory(newHistory);
-        setHistoryIndex(newHistory.length - 1);
-      }
-      
-      setPageContent(content);
-
-    } catch (error) {
-      console.error("Failed to extract content via proxy:", error);
-      setPageContent("Could not load page content. The site may be blocking requests.");
-    } finally {
-        setPageVersion(v => v + 1);
-        setIsLoading(false);
-    }
-  }, [history, historyIndex]);
 
   useEffect(() => {
     // Navigate to the initial URL when the component mounts
-    if(url) {
-        handleNavigate(url, 'new');
+    if (url) {
+      handleNavigate(url, 'new');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   const handleNavigate = (newUrl: string, type: 'new' | 'history' = 'new') => {
-    if (!newUrl) return;
+    if (!newUrl || newUrl === 'about:blank') return;
+    
+    setIsLoading(true);
 
-    if (type === 'new') {
+    if (type === 'new' && newUrl !== history[historyIndex]) {
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(newUrl);
         setHistory(newHistory);
@@ -85,19 +37,15 @@ export default function DPIBrowser() {
     }
 
     setUrl(newUrl);
-    // Use the proxy for the iframe source as well
-    setIframeSrc(`/api/proxy?url=${encodeURIComponent(newUrl)}`); 
-    setIsLoading(true);
-    extractContent(newUrl);
+    setIframeSrc(`/api/proxy?url=${encodeURIComponent(newUrl)}`);
   };
 
   const handleRefresh = () => {
-    if (url && url !== 'about:blank') {
+    if (iframeSrc && iframeSrc !== 'about:blank') {
         setIsLoading(true);
-        extractContent(url);
-        // Appending a timestamp to the URL to force a reload, passed to the proxy
-        const reloader = url.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
-        setIframeSrc(`/api/proxy?url=${encodeURIComponent(url + reloader)}`);
+        // Appending a timestamp to the URL to force a reload of the proxy
+        const reloader = `&t=${Date.now()}`;
+        setIframeSrc(iframeSrc.split('&t=')[0] + reloader);
     }
   };
 
@@ -121,7 +69,46 @@ export default function DPIBrowser() {
   
   const handleIframeLoad = () => {
     setIsLoading(false);
-  }
+    
+    // The iframe has loaded content from our proxy.
+    // We can now get the final URL and content from the response headers.
+    const iframe = iframeRef.current;
+    if (iframe?.contentWindow) {
+      // Because the iframe content is served from our own domain via the proxy,
+      // we can't just read iframe.contentWindow.location.href.
+      // Instead, we fetch the headers from the proxy response.
+      const src = iframe.src;
+      if (src && src !== 'about:blank') {
+          fetch(src)
+            .then(res => {
+                const finalUrl = res.headers.get('X-Final-Url');
+                const content = res.headers.get('X-Page-Content');
+
+                if (finalUrl) {
+                    setUrl(finalUrl);
+                    // Update history with the final URL
+                    if (history[historyIndex] !== finalUrl) {
+                        const newHistory = [...history];
+                        newHistory[historyIndex] = finalUrl;
+                        setHistory(newHistory);
+                    }
+                }
+                
+                if (content) {
+                    setPageContent(decodeURIComponent(content));
+                } else {
+                    setPageContent('');
+                }
+                setPageVersion(v => v + 1);
+            })
+            .catch(err => {
+                console.error("Error fetching proxy headers:", err)
+                setPageContent('Could not load page content.');
+                setPageVersion(v => v + 1);
+            });
+      }
+    }
+  };
 
   return (
     <div className="flex h-screen w-full flex-col bg-card font-sans">

@@ -28,13 +28,12 @@ export async function GET(request: NextRequest) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
-    // Make all links absolute
+    // Make all links absolute and route them through the proxy
     $('a').each((i, el) => {
         const href = $(el).attr('href');
         if (href) {
             try {
                 const absoluteUrl = new URL(href, finalUrl).toString();
-                // Route internal navigation through the proxy
                 $(el).attr('href', `/api/proxy?url=${encodeURIComponent(absoluteUrl)}`);
             } catch (e) {
                 // ignore invalid URLs
@@ -42,7 +41,7 @@ export async function GET(request: NextRequest) {
         }
     });
     
-    // Remove script and style elements
+    // Remove script and style elements, plus common noise
     $('script, style, noscript, nav, footer, header, aside').remove();
 
     // Get text from the main content, or body if main is not found
