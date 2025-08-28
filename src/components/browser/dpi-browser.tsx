@@ -17,23 +17,12 @@ export default function DPIBrowser() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const extractContent = () => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      try {
-        const body = iframeRef.current.contentWindow.document.body;
-        // A simple heuristic to get main content, could be improved.
-        const mainContent = body.querySelector('main') || body.querySelector('article') || body;
-        let text = mainContent.innerText.trim();
-        if (text.length > 5000) {
-          text = text.substring(0, 5000);
-        }
-        setPageContent(text);
-        setPageVersion(v => v + 1); // Increment to trigger summary
-      } catch (e) {
-        console.error("Content extraction failed:", e);
-        setPageContent('');
-        setPageVersion(v => v + 1);
-      }
-    }
+    // Content extraction is only possible for same-origin iframes.
+    // For a real browser, this would require a browser extension architecture
+    // or APIs not available in a standard web iframe. We will disable it
+    // for cross-origin content to prevent security errors.
+    setPageContent('');
+    setPageVersion(v => v + 1);
   };
 
   const handleNavigate = (newUrl: string) => {
