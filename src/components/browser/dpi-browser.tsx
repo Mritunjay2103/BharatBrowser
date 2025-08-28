@@ -1,33 +1,39 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import BrowserChrome from "./browser-chrome";
 import BrowserView from "./browser-view";
 import DpiPopup from "./dpi-popup";
 
 export default function DPIBrowser() {
   const [url, setUrl] = useState("https://www.wikipedia.org/");
+  // This is the source for the iframe, which will always be our proxy
   const [iframeSrc, setIframeSrc] = useState("about:blank");
   const [isLoading, setIsLoading] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [pageContent, setPageContent] = useState('');
-  const [pageVersion, setPageVersion] = useState(0);
+  const [pageVersion, setPageVersion] = useState(0); // Used to trigger summary refresh
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  useEffect(() => {
-    // Navigate to the initial URL when the component mounts
-    if (url) {
-      handleNavigate(url, 'new');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleNavigate = (newUrl: string, type: 'new' | 'history' = 'new') => {
-    if (!newUrl || newUrl === 'about:blank' || (type === 'new' && newUrl === url)) return;
+  // Memoize handleNavigate to prevent re-creation on every render
+  const handleNavigate = useCallback((newUrl: string, type: 'new' | 'history' = 'new') => {
+    if (!newUrl || newUrl === 'about:blank') return;
     
+    // Prevent re-navigating to the same URL from the address bar
+    if (type === 'new' && newUrl === url) {
+       handleRefresh();
+       return;
+    }
+
     setIsLoading(true);
+    setPageContent(''); // Clear old content immediately
+    setUrl(newUrl); // Update address bar immediately
+    
+    // All navigation goes through our proxy
+    const proxyUrl = `/api/proxy?url=${encodeURIComponent(newUrl)}`;
+    setIframeSrc(proxyUrl);
 
     if (type === 'new' && newUrl !== history[historyIndex]) {
         const newHistory = history.slice(0, historyIndex + 1);
@@ -35,80 +41,79 @@ export default function DPIBrowser() {
         setHistory(newHistory);
         setHistoryIndex(newHistory.length - 1);
     }
+  }, [history, historyIndex, url]); // Add dependencies
 
-    setUrl(newUrl);
-    setIframeSrc(`/api/proxy?url=${encodeURIComponent(newUrl)}`);
-  };
+  useEffect(() => {
+    // Initial load
+    handleNavigate(url, 'new');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
+
+  // This function is passed to the iframe, and the iframe calls it when its content has loaded
+  const handleIframeLoad = useCallback((data: { finalUrl?: string; content?: string; error?: string }) => {
+    setIsLoading(false);
+    if (data.error) {
+        setPageContent(`Error loading page: ${data.error}`);
+    } else {
+        // The proxy tells us the final URL and gives us the content
+        if (data.finalUrl && data.finalUrl !== url) {
+            setUrl(data.finalUrl);
+            // Update history with the final redirected URL
+            const newHistory = [...history];
+            if (newHistory[historyIndex] !== data.finalUrl) {
+                newHistory[historyIndex] = data.finalUrl;
+                setHistory(newHistory);
+            }
+        }
+        setPageContent(data.content || '');
+    }
+    // Increment version to trigger re-summarization in AiCopilot
+    setPageVersion(v => v + 1);
+  }, [url, history, historyIndex]);
 
   const handleRefresh = () => {
     if (iframeSrc && iframeSrc !== 'about:blank') {
         setIsLoading(true);
-        // Appending a timestamp to the URL to force a reload of the proxy
-        const reloader = `&t=${Date.now()}`;
-        setIframeSrc(iframeSrc.split('&t=')[0] + reloader);
+        // Re-request from the proxy, adding a timestamp to bypass cache
+        const cacheBuster = `&t=${Date.now()}`;
+        setIframeSrc(iframeSrc.split('&t=')[0] + cacheBuster);
     }
   };
 
   const handleBack = () => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
-      const backUrl = history[newIndex];
       setHistoryIndex(newIndex);
-      handleNavigate(backUrl, 'history');
+      handleNavigate(history[newIndex], 'history');
     }
   };
 
   const handleForward = () => {
     if (historyIndex < history.length - 1) {
       const newIndex = historyIndex + 1;
-      const forwardUrl = history[newIndex];
       setHistoryIndex(newIndex);
-      handleNavigate(forwardUrl, 'history');
+      handleNavigate(history[newIndex], 'history');
     }
   };
   
-  const handleIframeLoad = () => {
-    setIsLoading(false);
-    
-    // The iframe has loaded content from our proxy.
-    // We can now get the final URL and content from the response headers.
-    const iframe = iframeRef.current;
-    if (iframe?.contentWindow) {
-      // Because the iframe content is served from our own domain via the proxy,
-      // we can't just read iframe.contentWindow.location.href.
-      // Instead, we fetch the headers from the proxy response.
-      const src = iframe.src;
-      if (src && src !== 'about:blank') {
-          fetch(src)
-            .then(res => res.json())
-            .then(data => {
-                const { finalUrl, content } = data;
+  // This useEffect will listen for navigation events from the iframe content
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Basic security: check origin if you have a known domain
+      // if (event.origin !== window.location.origin) return;
 
-                if (finalUrl) {
-                    setUrl(finalUrl);
-                    // Update history with the final URL
-                    if (history[historyIndex] !== finalUrl) {
-                        const newHistory = [...history];
-                        newHistory[historyIndex] = finalUrl;
-                        setHistory(newHistory);
-                    }
-                }
-                
-                if (content) {
-                    setPageContent(content);
-                } else {
-                    setPageContent('');
-                }
-                setPageVersion(v => v + 1);
-            })
-            .catch(err => {
-                console.error("Error fetching proxy data:", err)
-                setPageContent('Could not load page content.');
-                setPageVersion(v => v + 1);
-            });
+      const { type, url: newUrl } = event.data;
+      if (type === 'navigate') {
+        handleNavigate(newUrl, 'new');
       }
-    }
-  };
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [handleNavigate]);
+
 
   return (
     <div className="flex h-screen w-full flex-col bg-card font-sans">
@@ -127,8 +132,8 @@ export default function DPIBrowser() {
       <div className="relative flex-1">
         <BrowserView
           ref={iframeRef}
-          src={iframeSrc}
-          onLoad={handleIframeLoad}
+          proxySrc={iframeSrc}
+          onContentLoaded={handleIframeLoad}
           isLoading={isLoading}
         />
         <DpiPopup open={isPopupOpen} pageContent={pageContent} pageVersion={pageVersion} />

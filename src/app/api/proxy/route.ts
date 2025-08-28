@@ -4,8 +4,11 @@ import * as cheerio from 'cheerio';
 // Helper to create an absolute URL
 const toAbsoluteUrl = (url: string, base: string): string => {
   try {
+    // If url is already absolute, URL constructor will use it as is.
+    // If it's relative, it will be resolved relative to the base.
     return new URL(url, base).toString();
   } catch {
+    // Fallback for invalid URLs
     return url;
   }
 };
@@ -24,7 +27,7 @@ export async function GET(request: NextRequest) {
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         },
-        redirect: 'follow'
+        redirect: 'follow' // Important to get the final URL after redirects
     });
     
     const finalUrl = response.url;
@@ -32,21 +35,36 @@ export async function GET(request: NextRequest) {
     
     // For non-HTML content, we just want to know the final URL, no content needed.
     if (!contentType.includes('text/html')) {
-        return NextResponse.json({ finalUrl, content: null });
+        // Instead of redirecting, which can be complex with iframes,
+        // we'll just inform the client it's not HTML.
+        return NextResponse.json({ finalUrl, content: null, html: `<p>Cannot display content of type: ${contentType}</p>` });
     }
     
     const html = await response.text();
     const $ = cheerio.load(html);
+
+    // Add a <base> tag to resolve relative resource paths correctly
+    $('head').prepend(`<base href="${finalUrl}">`);
 
     // Make all links absolute and route them through the proxy
     $('a').each((i, el) => {
         const href = $(el).attr('href');
         if (href) {
             const absoluteUrl = toAbsoluteUrl(href, finalUrl);
-            $(el).attr('href', `/api/proxy?url=${encodeURIComponent(absoluteUrl)}`);
+            // We need to re-encode the URL for the proxy parameter
+            $(el).attr('href', `/?url=${encodeURIComponent(absoluteUrl)}`);
         }
     });
     
+    // Make form actions absolute and route them through the proxy
+    $('form').each((i, el) => {
+        const action = $(el).attr('action');
+        if (action) {
+            const absoluteUrl = toAbsoluteUrl(action, finalUrl);
+             $(el).attr('action', `/?url=${encodeURIComponent(absoluteUrl)}`);
+        }
+    });
+
     // Remove script and style elements, plus common noise
     $('script, style, noscript, nav, footer, header, aside').remove();
 
@@ -64,8 +82,7 @@ export async function GET(request: NextRequest) {
       text = text.substring(0, MAX_LENGTH);
     }
     
-    // Instead of returning HTML, we return JSON with the final URL and extracted content.
-    // The iframe will now be responsible for rendering this data.
+    // We send back the final URL, the extracted text content, and the modified HTML
     return NextResponse.json({ finalUrl, content: text, html: $.html() });
 
   } catch (error) {
@@ -75,8 +92,9 @@ export async function GET(request: NextRequest) {
         { 
             error: 'Failed to fetch and process the URL.',
             details: (error as Error).message,
-            finalUrl: url,
+            finalUrl: url, // Return original URL on failure
             content: null,
+            html: `<h2>Error</h2><p>Could not load page: ${(error as Error).message}</p>`
         },
         { status: 500 }
     );
