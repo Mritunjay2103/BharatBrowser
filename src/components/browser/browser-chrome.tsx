@@ -68,7 +68,7 @@ export default function BrowserChrome({
         navUrl = `https://${term}`;
       } else {
         // Otherwise, treat as a search query
-        navUrl = `https://duckduckgo.com/?q=${encodeURIComponent(term)}`;
+        navUrl = `https://www.google.com/search?q=${encodeURIComponent(term)}`;
       }
     }
     onNavigate(navUrl);
@@ -136,7 +136,7 @@ export default function BrowserChrome({
                 <span className="ml-auto text-xs text-muted-foreground">{site.url}</span>
               </button>
             ))}
-            {inputValue && (
+            {inputValue && !filteredSites.some(s => s.url.startsWith(`https://${inputValue}`)) && (
               <button
                 onClick={() => handleSearchOrNavigate(inputValue)}
                 className="flex items-center gap-3 rounded-md p-2 text-left text-sm transition-colors hover:bg-white/10"
