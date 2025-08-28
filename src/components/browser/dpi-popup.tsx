@@ -9,10 +9,11 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AiCopilot from "./ai-copilot";
-import ConsentManager from "./consent-manager";
+import ConsentManager, { Consent } from "./consent-manager";
 import DigitalIdentity from "./digital-identity";
 import UpiPayments from "./upi-payments";
 import { ScrollArea } from "../ui/scroll-area";
+import { useState } from "react";
 
 type DpiPopupProps = {
   open: boolean;
@@ -21,6 +22,16 @@ type DpiPopupProps = {
 };
 
 export default function DpiPopup({ open, pageContent, pageVersion }: DpiPopupProps) {
+  const [consents, setConsents] = useState<Consent>({
+    kyc: true,
+    payments: true,
+    telemetry: false,
+  });
+
+  const handleConsentChange = (key: keyof Consent) => {
+    setConsents((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <div
       data-state={open ? "open" : "closed"}
@@ -54,13 +65,13 @@ export default function DpiPopup({ open, pageContent, pageVersion }: DpiPopupPro
                 <AiCopilot pageContent={pageContent} pageVersion={pageVersion} />
               </TabsContent>
               <TabsContent value="consent" className="m-0 p-4">
-                <ConsentManager />
+                <ConsentManager consents={consents} onConsentChange={handleConsentChange}/>
               </TabsContent>
               <TabsContent value="identity" className="m-0 p-4">
-                <DigitalIdentity />
+                <DigitalIdentity consents={consents} />
               </TabsContent>
               <TabsContent value="payments" className="m-0 p-4">
-                <UpiPayments />
+                <UpiPayments consents={consents} />
               </TabsContent>
             </ScrollArea>
           </CardContent>

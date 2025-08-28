@@ -19,14 +19,8 @@ export default function DPIBrowser() {
 
   // Memoize handleNavigate to prevent re-creation on every render
   const handleNavigate = useCallback((newUrl: string, type: 'new' | 'history' = 'new') => {
-    if (!newUrl || newUrl === 'about:blank') return;
+    if (!newUrl || newUrl === 'about:blank' || (type === 'new' && newUrl === url) ) return;
     
-    // Prevent re-navigating to the same URL from the address bar
-    if (type === 'new' && newUrl === url) {
-       handleRefresh();
-       return;
-    }
-
     setIsLoading(true);
     setPageContent(''); // Clear old content immediately
     setUrl(newUrl); // Update address bar immediately

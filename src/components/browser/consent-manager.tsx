@@ -1,26 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { Info } from "lucide-react";
 
-type Consent = {
+export type Consent = {
   kyc: boolean;
   payments: boolean;
   telemetry: boolean;
 };
 
-export default function ConsentManager() {
-  const [consents, setConsents] = useState<Consent>({
-    kyc: true,
-    payments: true,
-    telemetry: false,
-  });
+type ConsentManagerProps = {
+  consents: Consent;
+  onConsentChange: (key: keyof Consent) => void;
+};
 
-  const handleConsentChange = (key: keyof Consent) => {
-    setConsents((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+export default function ConsentManager({ consents, onConsentChange }: ConsentManagerProps) {
   
   const consentItems = [
     {
@@ -43,6 +40,13 @@ export default function ConsentManager() {
   return (
     <div className="space-y-4">
        <h3 className="font-semibold text-foreground">Consent Manager</h3>
+       <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>Your Data, Your Control</AlertTitle>
+        <AlertDescription>
+          These settings allow you to manage how your data is shared with websites and services through the browser.
+        </AlertDescription>
+       </Alert>
        <Card className="p-4 bg-background">
         <div className="space-y-4">
             {consentItems.map((item) => (
@@ -56,7 +60,7 @@ export default function ConsentManager() {
                     <Switch
                         id={item.key}
                         checked={consents[item.key]}
-                        onCheckedChange={() => handleConsentChange(item.key)}
+                        onCheckedChange={() => onConsentChange(item.key)}
                     />
                 </div>
             ))}
